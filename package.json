@@ -1,0 +1,16 @@
+{
+  "name": "kongasa-blog",
+  "version": "1.0.0",
+  "description": "Kongasa's blog.",
+  "main": "index.js",
+  "repository": "git@github.com:kongasa/kongasa.github.io.git",
+  "author": "Kongasa <kongddavid@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "vuepress": "^2.0.0-beta.12"
+  },
+  "scripts": {
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs"
+  }
+}
