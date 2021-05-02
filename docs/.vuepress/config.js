@@ -4,6 +4,6 @@ module.exports = {
   description: 'Kongasa\'s blog.',
 
   themeConfig: {
-    logo: 'https://vuejs.org/images/logo.png',
+    logo: '/images/logo.png',
   },
 }
