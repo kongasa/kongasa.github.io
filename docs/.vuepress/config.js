@@ -6,5 +6,5 @@ module.exports = {
   themeConfig: {
     logo: "/images/logo.png",
   },
-  head: [["meta", { "http-equiv": "Expires", content: "600" }]],
+  head: [["meta", { "http-equiv": "refresh", content: "600" }]],
 };
