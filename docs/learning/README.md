@@ -1,13 +1,15 @@
 ---
 lang: zh-CN
-title: Kongasa's Learning
+title: 学习笔记
 description: Learning Notes.
 base: /learning/
 ---
-# Learning
+# 学习笔记
 
-## 杂七杂八的细节
+如果不是为了使用或者兴趣而学，单纯为了学而学，通常是左耳进右耳出，不如不学。
 
-### [C macro](./c-macro.md)
+## [Web 前端基础](./web-foundation/)
 
-### [Linux list_head](./linux-list-head.md)
+## [工具](./tools/)
+
+## [杂项](./others/)

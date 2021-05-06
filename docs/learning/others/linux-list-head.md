@@ -1,6 +1,10 @@
 # Linux list_head
 
+参考：
+
 [Linux 内核list_head 学习（一）](https://www.cnblogs.com/zhuyp1015/archive/2012/06/02/2532240.html)
+
+[C 语言中，「.」与「->」有什么区别？](https://www.zhihu.com/question/49164544/answer/301969545)
 
 Linux 的链表很有意思。
 

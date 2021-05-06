@@ -8,7 +8,11 @@ module.exports = {
     home: "/",
     navbar: [
       {
-        text: "learning",
+        text: "Home",
+        link: "/",
+      },
+      {
+        text: "Learning",
         link: "/learning/",
       },
     ],
