@@ -7,3 +7,7 @@ base: /learning/tools/
 # 工具
 
 ## [RxJS 概念](./rxjs.md)
+
+## [Vuex](./vuex.md)
+
+## [Rollup](./rollup.md)
