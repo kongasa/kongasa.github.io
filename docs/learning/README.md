@@ -10,6 +10,10 @@ base: /learning/
 
 ## [Web 前端基础](./web-foundation/)
 
+## [Vue](./vue/)
+
+## [可视化](./visualization/)
+
 ## [工具](./tools/)
 
 ## [杂项](./others/)
