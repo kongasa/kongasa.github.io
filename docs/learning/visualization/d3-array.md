@@ -526,3 +526,264 @@ export default function cumsum(values, valueof) {
 }
 ```
 
+## variance.js
+
+```js
+// 使用 Welford online algorithm 计算方差
+export default function variance(values, valueof) {
+  let count = 0;
+  let delta;
+  let mean = 0;
+  let sum = 0;
+  if (valueof === undefined) {
+    for (let value of values) {
+      if (value != null && (value = +value) >= value) {
+        delta = value - mean;
+        mean += delta / ++count;
+        sum += delta * (value - mean);
+      }
+    }
+  } else {
+    let index = -1;
+    for (let value of values) {
+      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
+        delta = value - mean;
+        mean += delta / ++count;
+        sum += delta * (value - mean);
+      }
+    }
+  }
+  if (count > 1) return sum / (count - 1);
+}
+```
+
+## deviation.js
+
+```js
+import variance from "./variance.js";
+// 计算标准差
+export default function deviation(values, valueof) {
+  const v = variance(values, valueof);
+  return v ? Math.sqrt(v) : v;
+}
+```
+
+## difference.js
+
+```js
+// 集合的差操作
+export default function difference(values, ...others) {
+  values = new Set(values);
+  for (const other of others) {
+    for (const value of other) {
+      values.delete(value);
+    }
+  }
+  return values;
+}
+```
+
+## disjoint.js
+
+验证两个集合是否为互斥集，两个参数都应实现迭代器协议。
+
+```js
+export default function disjoint(values, other) {
+  // 本质是利用 Set 判断互斥
+  const iterator = other[Symbol.iterator](), set = new Set();
+  for (const v of values) {
+    if (set.has(v)) return false;
+    let value, done;
+    // 这个 while 循环只会在第一个 for 循环中运行，
+    // 之后将永远在第一次 break 处跳出
+    while (({value, done} = iterator.next())) {
+      if (done) break;
+      if (Object.is(v, value)) return false;
+      set.add(value);
+    }
+  }
+  return true;
+}
+```
+
+## every.js
+
+```js
+// 对于 values 中的每一个元素，test 都返回 true，则 every 才返回 true。
+export default function every(values, test) {
+  if (typeof test !== "function") throw new TypeError("test is not a function");
+  let index = -1;
+  for (const value of values) {
+    if (!test(value, ++index, values)) {
+      return false;
+    }
+  }
+  return true;
+}
+```
+
+## some.js
+
+```js
+// 与 every 类似
+export default function some(values, test) {
+  if (typeof test !== "function") throw new TypeError("test is not a function");
+  let index = -1;
+  for (const value of values) {
+    if (test(value, ++index, values)) {
+      return true;
+    }
+  }
+  return false;
+}
+```
+
+## filter.js
+
+```js
+// 功能同 Array.prototype.filter
+export default function filter(values, test) {
+  if (typeof test !== "function") throw new TypeError("test is not a function");
+  const array = [];
+  let index = -1;
+  for (const value of values) {
+    if (test(value, ++index, values)) {
+      array.push(value);
+    }
+  }
+  return array;
+}
+```
+
+## fsum.js
+
+```js
+// 高精度的 sum 和 cumsum，再见 JS 精度
+export class Adder {
+  constructor() {
+    // 初始化，精度为 32 个 64 位浮点数
+    this._partials = new Float64Array(32);
+    this._n = 0;
+  }
+  // 在 add 中，影响最终效果的只有 i 和 x 两个变量
+  // 每次 add 都会扫面一遍，并从新建立 p
+  // 因为代码始终在同一个数组上操作，可能有点迷惑
+  // 把已有的 p 和更新后的 p 当作两个数组会更好理解
+  add(x) {
+    const p = this._partials;
+    let i = 0;
+    // 循环中没有跳出语句，说明每次都会对 p 进行扫描
+    // 某一位只要被扫描过了，那它就成为了无用位
+    // 某一位是否有用应该看它与 i 的关系
+    for (let j = 0; j < this._n && j < 32; j++) {
+      const y = p[j],
+        hi = x + y,
+        lo = Math.abs(x) < Math.abs(y) ? x - (hi - y) : y - (hi - x);
+      // 当精度没出问题的时候，下行语句不会执行
+      // 即不会扩展有效最高位
+      // 有效最高位就是发生了近似后的值
+      // 其他低位都是修正值
+      // 精度出了问题，把修正用值更新到新的 p 中
+      if (lo) p[i++] = lo;
+      // 当精度没出问题的时候，x 就是加的结果
+      // 精度出问题，则 x 需要新 p 的修正才能表示正确值
+      x = hi;
+    }
+    // 此时 i 代表的是这个数组的有效最高位
+    // 假如一直没发生精度问题，则有效最高位永远是0
+    p[i] = x;
+    // n 代表有效位的数量，高于有效位的位置将被忽略
+    this._n = i + 1;
+    return this;
+  }
+  // 转换为 number 时使用的函数。
+  valueOf() {
+    const p = this._partials;
+    let n = this._n, x, y, lo, hi = 0;
+    // n == 0 说明未调用 add，返回 0
+    // n == 1 说明未发生精度问题，p 只保存了一个有效的 number
+    // 直接返回此 number
+    if (n > 0) {
+      hi = p[--n];
+      while (n > 0) {
+        x = hi;
+        y = p[--n];
+        hi = x + y;
+        lo = y - (hi - x);
+        // 当修正值发生精度问题后，停止修正
+        if (lo) break;
+      }
+      if (n > 0 && ((lo < 0 && p[n - 1] < 0) || (lo > 0 && p[n - 1] > 0))) {
+        y = lo * 2;
+        x = hi + y;
+        if (y == x - hi) hi = x;
+      }
+    }
+    return hi;
+  }
+}
+
+export function fsum(values, valueof) {
+  const adder = new Adder();
+  if (valueof === undefined) {
+    for (let value of values) {
+      if (value = +value) {
+        adder.add(value);
+      }
+    }
+  } else {
+    let index = -1;
+    for (let value of values) {
+      if (value = +valueof(value, ++index, values)) {
+        adder.add(value);
+      }
+    }
+  }
+  // 将 adder 转化为 number
+  return +adder;
+}
+
+export function fcumsum(values, valueof) {
+  const adder = new Adder();
+  let index = -1;
+  return Float64Array.from(values, valueof === undefined
+      ? v => adder.add(+v || 0)
+      : v => adder.add(+valueof(v, ++index, values) || 0)
+  );
+}
+```
+
+## greatest.js
+
+```js
+import ascending from "./ascending.js";
+// 寻找最大值，允许自定义比较函数/求值函数
+export default function greatest(values, compare = ascending) {
+  let max;
+  let defined = false;
+  if (compare.length === 1) {
+    let maxValue;
+    for (const element of values) {
+      const value = compare(element);
+      if (defined
+          ? ascending(value, maxValue) > 0
+          : ascending(value, value) === 0) {
+        max = element;
+        maxValue = value;
+        defined = true;
+      }
+    }
+  } else {
+    for (const value of values) {
+      if (defined
+          ? compare(value, max) > 0
+          : compare(value, value) === 0) {
+        max = value;
+        defined = true;
+      }
+    }
+  }
+  return max;
+}
+```
+
